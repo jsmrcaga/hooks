@@ -1,0 +1,9 @@
+*/*.tfvars
+*/*.tfplan
+*/.terraform
+*/*.tfstate*
+
+wrangler.toml
+
+dist/
+node_modules/
