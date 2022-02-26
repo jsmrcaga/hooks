@@ -1,3 +1,4 @@
+# CLOUDFLARE
 variable cloudflare_api_key {
 	type = string
 }
@@ -12,4 +13,14 @@ variable cloudflare_account_id {
 
 variable cloudflare_zone_id {
 	type = string
+}
+
+
+# GITHUB
+variable github_token {
+	type = string
+}
+
+variable github_secrets {
+	type = map
 }
