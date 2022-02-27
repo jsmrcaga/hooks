@@ -241,6 +241,56 @@ describe('RouterTree', () => {
 					expect(callback).to.be.null;
 				}
 			});
+
+			it('Should be able to reuse existing routes (regex, param & string)', () => {
+				const tree = new RouterTree();
+
+				// fake functions to be able to test later
+				// and with different memory references
+				cb_root = () => {};
+				cb_plep = () => {};
+				cb_plep_plop = () => {};
+				cb_plep_plip = () => {};
+				cb_plep_reg = () => {};
+				cb_plep_reg_link = () => {};
+				cb_plep_id = () => {};
+				cb_plep_id_value = () => {};
+				cb_plep_id_plop = () => {};
+
+				// Register multiple nested and reused routes
+				tree.register('any', '/', cb_root);
+				tree.register('any', '/plep', cb_plep);
+				tree.register('any', '/plep/plop', cb_plep_plop);
+				tree.register('any', '/plep/plip', cb_plep_plip);
+
+				const reg = /^[a-zA-Z]+$/;
+				tree.register('any', ['plep', reg], cb_plep_reg);
+				// tree.register('any', ['/plep', reg, '/link'], cb_plep_reg_link);
+
+				tree.register('any', '/plep/:id', cb_plep_id);
+				tree.register('any', '/plep/:id/value', cb_plep_id_value);
+				tree.register('any', '/plep/:id/plop', cb_plep_id_plop);
+
+				expect(Object.keys(tree.root.children)).to.have.length(1);
+				const plep = tree.root.children['plep'];
+
+				// /plep/plop & plep/plip & plep/[null]
+				expect(Object.keys(plep.children)).to.have.length(3);
+				// only /[a-zA-Z]/
+				expect(Object.keys(plep.regex_routes)).to.have.length(1);
+
+				expect(tree.find('any', '/').callback).to.be.eql(cb_root);
+				expect(tree.find('any', '/plep').callback).to.be.eql(cb_plep);
+				expect(tree.find('any', '/plep/plop').callback).to.be.eql(cb_plep_plop);
+				expect(tree.find('any', '/plep/plip').callback).to.be.eql(cb_plep_plip);
+
+				expect(tree.find('any', '/plep/abcABC').callback).to.be.eql(cb_plep_reg);
+				// expect(tree.find('any', '/plep/abcABC/link').callback).to.be.eql(cb_plep_reg_link);
+
+				expect(tree.find('any', '/plep/123').callback).to.be.eql(cb_plep_id);
+				expect(tree.find('any', '/plep/123/value').callback).to.be.eql(cb_plep_id_value);
+				expect(tree.find('any', '/plep/123/plop').callback).to.be.eql(cb_plep_id_plop);
+			});
 		});
 	});
 });
