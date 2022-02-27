@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 
-const { RouterTree, Route } = require('../../hooks/routing/lib/tree');
+const { RouterTree, Route } = require('../../../hooks/routing/lib/tree');
 
 describe('RouterTree', () => {
 	describe('Route Registration', () => {
