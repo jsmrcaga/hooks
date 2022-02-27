@@ -152,17 +152,8 @@ class RouteNode {
 	}
 }
 
-const DefaultRouteProxy = {
-	for_method: () => {
-		return {
-			callback: null,
-			params: {}
-		};
-	}
-};
-
 class RouterTree {
-	constructor({ default_route=DefaultRouteProxy } = {}) {
+	constructor({ default_route=new Route() } = {}) {
 		this.root = new RouteNode();
 
 		if(default_route && !(default_route instanceof Route) && default_route !== DefaultRouteProxy) {

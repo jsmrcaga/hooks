@@ -1,3 +1,5 @@
+const { RouterTree } = require('./tree');
+
 const RouterProxy = {
 	get: (obj, prop) => {
 		if(prop in obj) {
@@ -14,14 +16,11 @@ const RouterProxy = {
 			obj.register(method, path, callback);
 		};
 	}
-}
+};
 
 class Router {
 	constructor() {
-		this.methods = {
-			any: {}
-		};
-
+		this.tree = new RouterTree();
 		return new Proxy(this, RouterProxy);
 	}
 
@@ -52,14 +51,22 @@ class Router {
 	}
 
 	run(request) {
-		const callback = this.route(request);
+		const { callback, params } = this.route(request);
 		try {
-			return this.respond(() => callback(request));
+			return this.respond(() => callback(request, params));
 		} catch(e) {
 			// Sentry
 			console.error(e);
 			return new Response(null, { status: 500 });
 		}
+	}
+
+	default(callback, method='any') {
+		this.tree.default_route.update(new Route({
+			methods: {
+				[method]: callback
+			}
+		}));
 	}
 
 	route(request) {
@@ -72,29 +79,20 @@ class Router {
 		let { method } = request;
 		method = method.toLowerCase();
 
-		// Check for method first
-		// Then "any"
-		if(!this.methods[method]) {
-			this.methods[method] = {};
+		const { callback, params } = this.tree.find(method, pathname);
+
+		if(!callback) {
+			// No match, 404
+			return (request) => {
+				return new Response(null, { status: 404 });
+			};
 		}
 
-		if(this.methods[method][pathname]) {
-			return this.methods[method][pathname];
-		}
-
-		if(this.methods.any[pathname]) {
-			return this.methods.any[pathname];
-		}
-
-		// No match, 404
-		return (request) => {
-			return new Response(null, { status: 404 });
-		};
+		return { callback, params };
 	}
 
-	register(method, path, callback) {
-		this.methods[method] = this.methods[method] || {};
-		this.methods[method][path] = callback;
+	register(method, path, callback, strict=false) {
+		this.tree.register(method, path, callback, strict);
 	}
 
 	routes() {
