@@ -83,8 +83,11 @@ class Router {
 
 		if(!callback) {
 			// No match, 404
-			return (request) => {
-				return new Response(null, { status: 404 });
+			return {
+				callback: (request) => {
+					return new Response(null, { status: 404 });
+				},
+				params: {}
 			};
 		}
 

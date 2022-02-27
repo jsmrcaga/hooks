@@ -12,10 +12,11 @@ class Request {
 }
 
 class Response {
-	constructor(body, { headers, method }) {
+	constructor(body, { headers, method, status }) {
 		this.body = body;
 		this.headers = headers;
 		this.method = method;
+		this.status = status;
 	}
 }
 
