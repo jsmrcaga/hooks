@@ -2,6 +2,11 @@
 resource cloudflare_worker_script "hooks" {
   name = "hooks"
   content = file("../dist/dist.js")
+
+  kv_namespace_binding {
+    name = "HOOKS_TIMERS"
+    namespace_id = cloudflare_workers_kv_namespace.hooks_timers.id
+  }
 }
 
 resource cloudflare_worker_route "hooks" {
