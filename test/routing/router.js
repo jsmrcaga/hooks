@@ -15,6 +15,18 @@ describe('App routes', () => {
 		expect(params).to.be.deep.eql({});
 	});
 
+	it('Should get the logsnag route', () => {
+		const request = new Request({
+			url: 'https://test.com/log/ping'
+		});
+
+		const { callback, params } = router.route(request);
+		const result = callback(request, params);
+
+		expect(result).to.be.eql('pong');
+		expect(params).to.be.deep.eql({});
+	});
+
 	it('Should respond 404 for unknown route', () => {
 		const request = new Request({
 			url: 'https://test.com/test'

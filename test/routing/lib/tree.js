@@ -23,16 +23,16 @@ describe('RouterTree', () => {
 				const cb = () => {};
 				const reg = /plep/;
 				tree.register('any', reg, cb);
-				expect(Object.keys(tree.root.regex_routes)).to.have.length(1);
-				expect(tree.root.regex_routes[reg].route.methods.any).to.be.eql(cb);
+				expect([...tree.root.regex_routes.keys()]).to.have.length(1);
+				expect(tree.root.regex_routes.get(reg).methods.any).to.be.eql(cb);
 			});
 
 			it('Should register a lookup route ("/:chicken")', () => {
 				const tree = new RouterTree();
 				const cb = () => {};
 				tree.register('any', ':plep', cb);
-				expect(tree.root.children[null]).to.not.be.null;
-				expect(tree.root.children[null].route.methods.any).to.be.eql(cb);
+				expect(tree.root.children.get(null)).to.not.be.null;
+				expect(tree.root.children.get(null).route.methods.any).to.be.eql(cb);
 			});
 
 			it('Should register routes on a specific method', () => {
@@ -81,21 +81,21 @@ describe('RouterTree', () => {
 				const tree = new RouterTree();
 				const cb = () => {};
 				tree.register('any', '/test/plep', cb);
-				expect(Object.keys(tree.root.children)).to.have.length(1);
-				const child = tree.root.children['test'];
+				expect([...tree.root.children.keys()]).to.have.length(1);
+				const child = tree.root.children.get('test');
 				expect(child.route).to.be.null;
-				expect(child.children['plep']).to.not.be.null;
-				expect(child.children['plep'].route.methods.any).to.be.eql(cb);
+				expect(child.children.get('plep')).to.not.be.null;
+				expect(child.children.get('plep').route.methods.any).to.be.eql(cb);
 			});
 
 			it('Should register a nested lookup route ("/users/:user_id")', () => {
 				const tree = new RouterTree();
 				const cb = () => {};
 				tree.register('any', '/test/:user_id', cb);
-				expect(Object.keys(tree.root.children)).to.have.length(1);
-				const child = tree.root.children['test'];
-				expect(child.children[null]).to.not.be.null;
-				expect(child.children[null].route.methods.any).to.be.eql(cb);
+				expect([...tree.root.children.keys()]).to.have.length(1);
+				const child = tree.root.children.get('test');
+				expect(child.children.get(null)).to.not.be.null;
+				expect(child.children.get(null).route.methods.any).to.be.eql(cb);
 			});
 
 			it('Should register a nested regexp route', () => {
@@ -106,10 +106,10 @@ describe('RouterTree', () => {
 				// simple regex expressions in strings ;)
 				const reg = /[0-9]+/;
 				tree.register('any', ['test', reg], cb);
-				expect(Object.keys(tree.root.children)).to.have.length(1);
-				const child = tree.root.children['test'];
-				expect(Object.keys(child.regex_routes)).to.have.length(1);
-				expect(child.regex_routes[reg].route.methods.any).to.be.eql(cb);
+				expect([...tree.root.children.keys()]).to.have.length(1);
+				const child = tree.root.children.get('test');
+				expect([...child.regex_routes.keys()]).to.have.length(1);
+				expect(child.regex_routes.get(reg).methods.any).to.be.eql(cb);
 			});
 		});
 	});
@@ -271,13 +271,13 @@ describe('RouterTree', () => {
 				tree.register('any', '/plep/:id/value', cb_plep_id_value);
 				tree.register('any', '/plep/:id/plop', cb_plep_id_plop);
 
-				expect(Object.keys(tree.root.children)).to.have.length(1);
-				const plep = tree.root.children['plep'];
+				expect([...tree.root.children.keys()]).to.have.length(1);
+				const plep = tree.root.children.get('plep');
 
 				// /plep/plop & plep/plip & plep/[null]
-				expect(Object.keys(plep.children)).to.have.length(3);
+				expect([...plep.children.keys()]).to.have.length(3);
 				// only /[a-zA-Z]/
-				expect(Object.keys(plep.regex_routes)).to.have.length(1);
+				expect([...plep.regex_routes.keys()]).to.have.length(1);
 
 				expect(tree.find('any', '/').callback).to.be.eql(cb_root);
 				expect(tree.find('any', '/plep').callback).to.be.eql(cb_plep);
@@ -291,6 +291,81 @@ describe('RouterTree', () => {
 				expect(tree.find('any', '/plep/123/value').callback).to.be.eql(cb_plep_id_value);
 				expect(tree.find('any', '/plep/123/plop').callback).to.be.eql(cb_plep_id_plop);
 			});
+		});
+	});
+
+	describe('Entries & merging', () => {
+		it('Should return a simple route with nested segments', () => {
+			const tree = new RouterTree();
+			const cb = () => {};
+			const reg = /plep/;
+
+			tree.register('any', ['resource', reg, ':some_id', 'sub_resource'], cb);
+
+			const entries = tree.entries();
+
+			expect(entries).to.have.length(1);
+			const [[ path, route ]] = entries;
+			expect(path).to.have.length(4);
+
+			// id values are transformed to null
+			expect(path).to.be.deep.equal(['resource', reg, ':some_id', 'sub_resource']);
+			expect(route).to.be.an.instanceof(Route);
+			expect(route.methods.any).to.be.eql(cb);
+		});
+
+		it('Should return nested routes with all segments', () => {
+			const tree = new RouterTree();
+			const cb = () => {};
+			const cb_2 = () => {};
+			const reg = /plep/;
+
+			tree.register('any', ['resource', reg, ':some_id', 'sub_resource'], cb);
+			tree.register('any', ['resource', reg, ':some_id', 'sub_resource', 'sub_res_2'], cb_2);
+
+			const entries = tree.entries();
+
+			expect(entries).to.have.length(2);
+			const [[ path, route ], [p2, r2]] = entries;
+			expect(path).to.have.length(4);
+			expect(p2).to.have.length(5);
+
+			// id values are transformed to null
+			expect(path).to.be.deep.equal(['resource', reg, ':some_id', 'sub_resource']);
+			expect(route).to.be.an.instanceof(Route);
+			expect(route.methods.any).to.be.eql(cb);
+
+			expect(p2).to.be.deep.equal(['resource', reg, ':some_id', 'sub_resource', 'sub_res_2']);
+			expect(r2).to.be.an.instanceof(Route);
+			expect(r2.methods.any).to.be.eql(cb_2);
+		});
+
+		it('Should merge 2 simple trees', () => {
+			const tree1 = new RouterTree();
+			const tree2 = new RouterTree();
+			const cb = () => {};
+			const cb_2 = () => {};
+
+			tree1.register('any', '/plep/plop', cb);
+			tree2.register('post', '/plep/plop/plip', cb_2);
+
+			tree1.merge({ tree: tree2 });
+
+			const entries = tree1.entries();
+
+			expect(entries).to.have.length(2);
+			const [[ p1, r1 ], [p2, r2]] = entries;
+
+			expect(p1).to.be.deep.equal(['plep', 'plop']);
+			expect(p2).to.be.deep.equal(['plep', 'plop', 'plip']);
+
+			expect(r1).to.be.an.instanceof(Route);
+			expect(r1.methods.any).to.be.eql(cb);
+
+			expect(r2).to.be.an.instanceof(Route);
+			expect(r2.methods.post).to.be.eql(cb_2);
+			expect(r2.methods).to.not.have.property('get');
+			expect(r2.methods.any).to.be.undefined;
 		});
 	});
 });

@@ -98,10 +98,15 @@ class Router {
 		this.tree.register(method, path, callback, strict);
 	}
 
-	routes() {
-		return Object.entries(this.methods).map(([method, routes]) => {
-			return Object.keys(routes).map(route => `${method}: ${route}`);
-		}).flat().join('\n');
+	use(path, router) {
+		// Will merge this router's tree with the given router tree
+		// This is quite simple, we just retrieve all routes from the router
+		// and then build every "new" path with the path prefix.
+		// Then we just register those to our tree
+		this.tree.merge({
+			prefix: path,
+			tree: router.tree
+		});
 	}
 }
 

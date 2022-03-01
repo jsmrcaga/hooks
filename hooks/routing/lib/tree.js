@@ -54,7 +54,7 @@ class Route {
 }
 
 class RouteNode {
-	constructor({ path='/', children={}, route=null, param_name=null }={}) {
+	constructor({ path='/', children=new Map(), regex_routes=new Map(), route=null, param_name=null }={}) {
 		// Path is just for debugging purposes, the real location
 		// is in the children map of the parent
 		this.path = path;
@@ -63,7 +63,7 @@ class RouteNode {
 		this.children = children;
 		this.route = route;
 
-		this.regex_routes = {};
+		this.regex_routes = regex_routes;
 		this.param_name = param_name;
 	}
 
@@ -82,7 +82,7 @@ class RouteNode {
 		}
 
 		if(path instanceof RegExp) {
-			this.regex_routes[path] = { regex: path, route};
+			this.regex_routes.set(path, route);
 			return;
 		}
 
@@ -91,7 +91,7 @@ class RouteNode {
 			const first = path[0];
 			// Case where regexp is nested
 			if(first instanceof RegExp) {
-				this.regex_routes[path] = { regex: first, route };
+				this.regex_routes.set(first, route);
 				return;
 			}
 		}
@@ -104,14 +104,14 @@ class RouteNode {
 			first = null;
 		}
 
-		if(!this.children[first]) {
-			this.children[first] = new RouteNode({
+		if(!this.children.get(first)) {
+			this.children.set(first, new RouteNode({
 				path: first,
 				param_name
-			});
+			}));
 		}
 
-		return this.children[first].add_child(path, route, strict);
+		return this.children.get(first).add_child(path, route, strict);
 	}
 
 	find(path, params={}) {
@@ -125,12 +125,12 @@ class RouteNode {
 		const pathname = path.join('/');
 
 		const first = path.shift();
-		if(this.children[first]) {
+		if(this.children.get(first)) {
 			// advance in tree
-			return this.children[first].find(path);
+			return this.children.get(first).find(path);
 		}
 
-		for(const {regex, route} of Object.values(this.regex_routes)) {
+		for(const [regex, route] of this.regex_routes.entries()) {
 			if(regex.test(pathname)) {
 				return {
 					route,
@@ -139,8 +139,8 @@ class RouteNode {
 			}
 		}
 
-		if(this.children[null]) {
-			const param_node = this.children[null];
+		if(this.children.get(null)) {
+			const param_node = this.children.get(null);
 			params[param_node.param_name] = first;
 			return param_node.find(path, params);
 		}
@@ -194,17 +194,72 @@ class RouterTree {
 		return route.for_method(method, params);
 	}
 
-	register(method, path, callback, strict=false) {
+	register(method=null, path='/', callback, strict=false) {
 		// Path can be a regex
 		if(typeof path !== 'string' && !(path instanceof RegExp) && !Array.isArray(path)) {
 			throw new TypeError('path must be a string or a regexp');
 		}
 
-		const route = new Route();
-		route.register(method, callback);
+		// allow registering routes directly
+		let route = null;
+		if(callback instanceof Route) {
+			route = callback;
+		} else {
+			route = new Route();
+			route.register(method, callback);
+		}
 
 		path = typeof path === 'string' ? this.get_path(path) : path;
 		this.root.add_child(path, route, strict);
+	}
+
+	find_values(node, path=[]) {
+		const paths = [];
+
+		if(node.route) {
+			// entries format [key, value]
+			paths.push([
+				[...path],
+				node.route
+			]);
+		}
+
+		// children & regex are maps
+		for(let [segment, _node] of node.children.entries()) {
+			// push new path to paths which will be augmented by every child
+			if(segment === null) {
+				// special case for named arguments
+				segment = `:${_node.param_name}`;
+			}
+			const child_paths = this.find_values(_node, [...path, segment]);
+			paths.push(...child_paths);
+		}
+
+		for(const [regex, _node] of node.regex_routes.entries()) {
+			const child_paths = this.find_values(_node, [...path, regex]);
+			paths.push(...child_paths);
+		}
+
+		return paths;
+	}
+
+	entries(path_prefix=[]) {
+		// build paths (arrays, to keep regexes) with values
+		// using a depth first search
+		return this.find_values(this.root, path_prefix);
+	}
+
+	merge({ prefix='/', tree, strict=false }) {
+		const path = this.get_path(prefix);
+		const entries = tree.entries(path);
+		for(const [path, route] of entries) {
+			this.register(
+				null,
+				path,
+				route,
+				strict
+			);
+		}
 	}
 }
 
