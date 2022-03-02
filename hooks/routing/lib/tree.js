@@ -1,5 +1,14 @@
 class Route {
-	static ALLOWED_METHODS = ['any', 'get', 'post', 'put', 'patch', 'delete', 'head', 'options'];
+	static ALLOWED_METHODS = [
+		'any',
+		'get',
+		'post',
+		'put',
+		'patch',
+		'delete',
+		'head',
+		'options'
+	];
 
 	constructor({ methods={} }={}) {
 		// methods is map of method => callback

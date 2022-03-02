@@ -1,4 +1,4 @@
-const { RouterTree } = require('./tree');
+const { RouterTree, Route } = require('./tree');
 
 const RouterProxy = {
 	get: (obj, prop) => {
@@ -7,8 +7,7 @@ const RouterProxy = {
 		}
 
 		const method = prop.toLowerCase();
-		const allowed_methods = ['any', 'get', 'post', 'put', 'patch', 'delete', 'head', 'options'];
-		if(!allowed_methods.includes(method)) {
+		if(!Route.ALLOWED_METHODS.includes(method)) {
 			throw new TypeError(`Method ${method} unknown`);
 		}
 
