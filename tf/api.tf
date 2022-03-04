@@ -7,6 +7,17 @@ resource cloudflare_worker_script "hooks" {
     name = "HOOKS_TIMERS"
     namespace_id = cloudflare_workers_kv_namespace.hooks_timers.id
   }
+
+  dynamic "secret_text_binding" {
+    for_each = var.hooks_environment
+
+    content {
+      # Please note that for some reason dynamic blocs 
+      # use the setting name instead of "each"
+      name = secret_text_binding.key
+      text = secret_text_binding.value
+    }
+  }
 }
 
 resource cloudflare_worker_route "hooks" {

@@ -1,3 +1,4 @@
+const LogSnag = require('./logsnag/api');
 const { App } = require('@control/cloudflare-workers-router');
 
 const router = require('./routing/router');
@@ -12,6 +13,21 @@ app.post_process((agg, response, request, params, event) => {
 	}
 
 	return response;
+});
+
+app.error(error => {
+	// Send error to logsnag and respond with 500
+	return LogSnag.log({
+		project: LOGSNAG_PROJECT_NAME,
+		channel: LOGSNAG_CHANNEL_NAME,
+		event: error.message,
+		description: error.stack,
+		notify: true
+	}).finally(() => {
+		return new Response(null, {
+			status: 500
+		});
+	});
 });
 
 app.listen();
