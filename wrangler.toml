@@ -1,0 +1,11 @@
+compatibility_date = "2022-02-26"
+
+name = "hooks"
+type = "javascript"
+
+workers_dev = false
+
+routes = ["hooks.jocolina.com/*"]
+
+[dev]
+port = 8000
