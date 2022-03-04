@@ -15,6 +15,9 @@ variable cloudflare_zone_id {
 	type = string
 }
 
+variable hooks_environment {
+	type = map
+}
 
 # GITHUB
 variable github_token {
