@@ -1,4 +1,4 @@
-const Router = require('../routing/lib/router');
+const { Router } = require('@control/cloudflare-workers-router');
 
 const router = new Router();
 
