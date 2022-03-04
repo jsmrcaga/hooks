@@ -1,4 +1,4 @@
-const Router = require('./lib/router');
+const { Router } = require('@control/cloudflare-workers-router');
 
 // Routing
 const logsnag_router = require('../logsnag/router');

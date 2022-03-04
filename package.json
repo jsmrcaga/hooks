@@ -22,5 +22,8 @@
     "mocha": "^9.2.1",
     "sinon": "^13.0.1",
     "webpack-cli": "^4.9.2"
+  },
+  "dependencies": {
+    "@control/cloudflare-workers-router": "^0.0.3"
   }
 }
