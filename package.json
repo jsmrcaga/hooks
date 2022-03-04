@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha --file ./test/setup.js --recursive --exit ./test",
-    "build": "webpack"
+    "build": "webpack",
+    "publish": "wrangler publish"
   },
   "repository": {
     "type": "git",
@@ -18,12 +19,13 @@
   },
   "homepage": "https://github.com/jsmrcaga/hooks#readme",
   "devDependencies": {
+    "@cloudflare/wrangler": "^1.19.8",
     "chai": "^4.3.6",
     "mocha": "^9.2.1",
     "sinon": "^13.0.1",
     "webpack-cli": "^4.9.2"
   },
   "dependencies": {
-    "@control/cloudflare-workers-router": "^0.0.3"
+    "@control/cloudflare-workers-router": "^0.0.4"
   }
 }
