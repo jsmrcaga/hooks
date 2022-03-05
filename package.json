@@ -25,6 +25,6 @@
     "webpack-cli": "^4.9.2"
   },
   "dependencies": {
-    "@control/cloudflare-workers-router": "^0.0.4"
+    "@control/cloudflare-workers-router": "^0.0.5"
   }
 }
