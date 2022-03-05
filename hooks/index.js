@@ -20,7 +20,7 @@ app.error(error => {
 	return LogSnag.log({
 		project: LOGSNAG_PROJECT_NAME,
 		channel: LOGSNAG_CHANNEL_NAME,
-		event: error.message,
+		event: error.message || 'Unkown error',
 		description: error.stack,
 		notify: true
 	}).finally(() => {
