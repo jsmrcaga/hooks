@@ -1,7 +1,7 @@
 # V1 only has router, v2 will have KV, v3 R2
 resource cloudflare_worker_script "hooks" {
   name = "hooks"
-  content = file("../dist/dist.js")
+  content = file("../index.js")
 
   kv_namespace_binding {
     name = "HOOKS_TIMERS"
