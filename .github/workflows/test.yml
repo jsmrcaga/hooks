@@ -38,7 +38,10 @@ jobs:
         - name: Install & build
           run: npm i && npm run build
 
-        - run: npm run publish
+        - name: Install wranger
+          run: npm i -g @cloudflare/wrangler
+
+        - run: wrangler publish -c ./wrangler.toml
           env:
             CF_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
             CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
