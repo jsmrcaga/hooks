@@ -6,7 +6,7 @@
   "scripts": {
     "test": "mocha --file ./test/setup.js --recursive --exit ./test",
     "build": "webpack",
-    "publish": "wrangler publish"
+    "publish": "wrangler publish -c ./wrangler.toml"
   },
   "repository": {
     "type": "git",
