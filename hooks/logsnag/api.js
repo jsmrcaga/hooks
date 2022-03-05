@@ -6,7 +6,7 @@ module.exports = {
 				project,
 				channel,
 				event,
-				notify
+				notify,
 				...rest
 			},
 			headers: {
