@@ -54,5 +54,6 @@ jobs:
             project: hooks
             channel: publish
             event: Published a new version (${{ github.run_number }})!
+            description: Published a new version to workers
             icon: ⚙️
             notify: true
